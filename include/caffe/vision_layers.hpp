@@ -84,23 +84,23 @@ class BaseConvolutionLayer : public Layer<Dtype> {
   inline void conv_im2col_cpu(const Dtype* data, Dtype* col_buff) {
     im2col_cpu(data, conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_,
-        kernel_stride_h_, kernel_stride_w_, col_buff);
+        kernel_stride_h_, kernel_stride_w_, kernel_h_reduced_, kernel_w_reduced_, col_buff);
   }
   inline void conv_col2im_cpu(const Dtype* col_buff, Dtype* data) {
     col2im_cpu(col_buff, conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_,
-        kernel_stride_h_, kernel_stride_w_, data);
+        kernel_stride_h_, kernel_stride_w_, kernel_h_reduced_, kernel_w_reduced_, data);
   }
 #ifndef CPU_ONLY
   inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
     im2col_gpu(data, conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_,
-        kernel_stride_h_, kernel_stride_w_,col_buff);
+        kernel_stride_h_, kernel_stride_w_, kernel_h_reduced_, kernel_w_reduced_, col_buff);
   }
   inline void conv_col2im_gpu(const Dtype* col_buff, Dtype* data) {
     col2im_gpu(col_buff, conv_in_channels_, conv_in_height_, conv_in_width_,
         kernel_h_, kernel_w_, pad_h_, pad_w_, stride_h_, stride_w_,
-        kernel_stride_h_, kernel_stride_w_, data);
+        kernel_stride_h_, kernel_stride_w_, kernel_h_reduced_, kernel_w_reduced_, data);
   }
 #endif
 
