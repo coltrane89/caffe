@@ -29,6 +29,10 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       && conv_param.has_stride_w())
       || (!conv_param.has_stride_h() && !conv_param.has_stride_w()))
       << "Stride is stride OR stride_h and stride_w are required.";
+  CHECK((!conv_param.has_kernel_stride() && conv_param.has_kernel_stride_h()
+         && conv_param.has_kernel_stride_w())
+        || (!conv_param.has_kernel_stride_h() && !conv_param.has_kernel_stride_w()))
+  << "Kernelstride is kernel_stride OR kernel_stride_h and kernel_stride_w are required.";
   if (conv_param.has_kernel_size()) {
     kernel_h_ = kernel_w_ = conv_param.kernel_size();
   } else {
@@ -49,9 +53,17 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     stride_h_ = conv_param.stride_h();
     stride_w_ = conv_param.stride_w();
   }
+  if (!conv_param.has_kernel_stride_h()) {
+    kernel_stride_h_ = kernel_stride_w_ = conv_param.kernel_stride();
+  } else {
+    kernel_stride_h_ = conv_param.kernel_stride_h();
+    kernel_stride_w_ = conv_param.kernel_stride_w();
+  }
+  kernel_h_reduced_ = (kernel_h_-1)/kernel_stride_h_+1;
+  kernel_w_reduced_ = (kernel_w_-1)/kernel_stride_w_+1;
   // Special case: im2col is the identity for 1x1 convolution with stride 1
   // and no padding, so flag for skipping the buffer and transformation.
-  is_1x1_ = kernel_w_ == 1 && kernel_h_ == 1
+  is_1x1_ = kernel_w_reduced_ == 1 && kernel_h_reduced_ == 1
       && stride_h_ == 1 && stride_w_ == 1 && pad_h_ == 0 && pad_w_ == 0;
   // Configure output channels and groups.
   channels_ = bottom[0]->channels();
@@ -83,7 +95,7 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     // Initialize and fill the weights:
     // output channels x input channels per-group x kernel height x kernel width
     this->blobs_[0].reset(new Blob<Dtype>(
-        conv_out_channels_, conv_in_channels_ / group_, kernel_h_, kernel_w_));
+        conv_out_channels_, conv_in_channels_ / group_, kernel_h_reduced_, kernel_w_reduced_));
     shared_ptr<Filler<Dtype> > weight_filler(GetFiller<Dtype>(
         this->layer_param_.convolution_param().weight_filler()));
     weight_filler->Fill(this->blobs_[0].get());
@@ -134,7 +146,7 @@ void BaseConvolutionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     conv_in_width_ = width_;
     conv_out_spatial_dim_ = height_out_ * width_out_;
   }
-  kernel_dim_ = conv_in_channels_ * kernel_h_ * kernel_w_;
+  kernel_dim_ = conv_in_channels_ * kernel_h_reduced_ * kernel_w_reduced_;
   weight_offset_ = conv_out_channels_ * kernel_dim_ / group_ / group_;
   col_offset_ = kernel_dim_ * conv_out_spatial_dim_ / group_;
   output_offset_ = conv_out_channels_ * conv_out_spatial_dim_ / group_;

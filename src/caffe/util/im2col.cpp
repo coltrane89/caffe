@@ -12,13 +12,15 @@ void im2col_cpu(const Dtype* data_im, const int channels,
     const int height, const int width, const int kernel_h, const int kernel_w,
     const int pad_h, const int pad_w,
     const int stride_h, const int stride_w,
+    const int kernel_stride_h, const int kernel_stride_w,
+    const int kernel_h_reduced, const int kernel_w_reduced,
     Dtype* data_col) {
   int height_col = (height + 2 * pad_h - kernel_h) / stride_h + 1;
   int width_col = (width + 2 * pad_w - kernel_w) / stride_w + 1;
-  int channels_col = channels * kernel_h * kernel_w;
+  int channels_col = channels * kernel_h_reduced * kernel_w_reduced;
   for (int c = 0; c < channels_col; ++c) {
-    int w_offset = c % kernel_w;
-    int h_offset = (c / kernel_w) % kernel_h;
+    int w_offset = c % kernel_w_reduced * kernel_stride_w;
+    int h_offset = (c / kernel_w_reduced) % kernel_h_reduced * kernel_stride_h;
     int c_im = c / kernel_h / kernel_w;
     for (int h = 0; h < height_col; ++h) {
       for (int w = 0; w < width_col; ++w) {
@@ -38,17 +40,21 @@ void im2col_cpu(const Dtype* data_im, const int channels,
 template void im2col_cpu<float>(const float* data_im, const int channels,
     const int height, const int width, const int kernel_h, const int kernel_w,
     const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, float* data_col);
+    const int stride_w, const int kernel_stride_h, const int kernel_stride_w,
+    const int kernel_h_reduced, const int kernel_w_reduced, float* data_col);
 template void im2col_cpu<double>(const double* data_im, const int channels,
     const int height, const int width, const int kernel_h, const int kernel_w,
     const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, double* data_col);
+    const int stride_w, const int kernel_stride_h, const int kernel_stride_w,
+    const int kernel_h_reduced, const int kernel_w_reduced, double* data_col);
 
 template <typename Dtype>
 void col2im_cpu(const Dtype* data_col, const int channels,
     const int height, const int width, const int patch_h, const int patch_w,
     const int pad_h, const int pad_w,
     const int stride_h, const int stride_w,
+    const int patch_stride_h, const int patch_stride_w,
+    const int patch_h_reduced, const int patch_w_reduced,
     Dtype* data_im) {
   caffe_set(height * width * channels, Dtype(0), data_im);
   int height_col = (height + 2 * pad_h - patch_h) / stride_h + 1;
@@ -74,10 +80,12 @@ void col2im_cpu(const Dtype* data_col, const int channels,
 template void col2im_cpu<float>(const float* data_col, const int channels,
     const int height, const int width, const int patch_h, const int patch_w,
     const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, float* data_im);
+    const int stride_w, const int patch_stride_h, const int patch_stride_w,
+    const int patch_h_reduced, const int patch_w_reduced, float* data_im);
 template void col2im_cpu<double>(const double* data_col, const int channels,
     const int height, const int width, const int patch_h, const int patch_w,
     const int pad_h, const int pad_w, const int stride_h,
-    const int stride_w, double* data_im);
+    const int stride_w, const int patch_stride_h, const int patch_stride_w,
+    const int patch_h_reduced, const int patch_w_reduced, double* data_im);
 
 }  // namespace caffe
