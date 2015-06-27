@@ -59,10 +59,10 @@ void col2im_cpu(const Dtype* data_col, const int channels,
   caffe_set(height * width * channels, Dtype(0), data_im);
   int height_col = (height + 2 * pad_h - patch_h) / stride_h + 1;
   int width_col = (width + 2 * pad_w - patch_w) / stride_w + 1;
-  int channels_col = channels * patch_h * patch_w;
+  int channels_col = channels * patch_h_reduced * patch_w_reduced;
   for (int c = 0; c < channels_col; ++c) {
-    int w_offset = c % patch_w;
-    int h_offset = (c / patch_w) % patch_h;
+    int w_offset = c % patch_w_reduced * patch_stride_w;
+    int h_offset = (c / patch_w_reduced) % patch_h_reduced * patch_stride_h;
     int c_im = c / patch_h / patch_w;
     for (int h = 0; h < height_col; ++h) {
       for (int w = 0; w < width_col; ++w) {
