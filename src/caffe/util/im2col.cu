@@ -95,11 +95,11 @@ __global__ void col2im_gpu_kernel(const int n, const Dtype* data_col,
     int c = index / (width * height);
     // compute the start and end of the output
     int w_col_start = (w < patch_w) ? 0 : 
-      ((w - patch_w) / stride_w + 1) / patch_stride_w;
-    int w_col_end = min(w / stride_w + 1, width_col) / patch_stride_w;
+      ((w - patch_w) / stride_w + 1);
+    int w_col_end = min(w / stride_w + 1, width_col);
     int h_col_start = (h < patch_h) ? 0 : 
-      ((h - patch_h) / stride_h + 1) / patch_stride_h;
-    int h_col_end = min(h / stride_h + 1, height_col) / patch_stride_h;
+      ((h - patch_h) / stride_h + 1);
+    int h_col_end = min(h / stride_h + 1, height_col);
     /*
     for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
       for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
@@ -110,14 +110,25 @@ __global__ void col2im_gpu_kernel(const int n, const Dtype* data_col,
       }
     }
     */
+    /*
+    for (int h_col = h_col_start; h_col < h_col_end; h_col += patch_stride_h) {
+      for (int w_col = w_col_start; w_col < w_col_end; w_col += patch_stride_w) {
+        // the col location: [c * width * height + h_out, w_out]
+        int c_col = c * patch_h_reduced * patch_w_reduced + 
+            (h - h_col * stride_h) / patch_stride_h * patch_w_reduced
+            + (w - w_col * stride_w) / patch_stride_w;
+        val += data_col[(c_col * height_col + h_col) * width_col + w_col];
+      }
+    }
+    */
     // equivalent implementation
     int offset =
-        (c * patch_h_reduced * patch_w_reduced + h * patch_w_reduced + w) * 
-        height_col * width_col;
-    int coeff_h_col = (1 - stride_h * patch_w_reduced * height_col) * width_col;
-    int coeff_w_col = (1 - stride_w * height_col * width_col);
-    for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
-      for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
+        (c * patch_h_reduced * patch_w_reduced + h / patch_stride_h * patch_w_reduced 
+          + w / patch_stride_w) * height_col * width_col;
+    int coeff_h_col = (1 - stride_h / patch_stride_h * patch_w_reduced * height_col) * width_col;
+    int coeff_w_col = (1 - stride_w / patch_stride_w * height_col * width_col);
+    for (int h_col = h_col_start; h_col < h_col_end; h_col += patch_stride_h) {
+      for (int w_col = w_col_start; w_col < w_col_end; w_col += patch_stride_w) {
         val += data_col[offset + h_col * coeff_h_col + w_col * coeff_w_col];
       }
     }
