@@ -557,6 +557,8 @@ class CropLayer : public Layer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
   int crop_h_, crop_w_;
+}
+
 }  // namespace caffe
 
 #endif  // CAFFE_VISION_LAYERS_HPP_
