@@ -533,7 +533,6 @@ class SPPLayer : public Layer<Dtype> {
   shared_ptr<ConcatLayer<Dtype> > concat_layer_;
 };
 
-
 template <typename Dtype>
 class CropLayer : public Layer<Dtype> {
  public:
@@ -543,6 +542,7 @@ class CropLayer : public Layer<Dtype> {
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
+
   virtual inline const char* type() const { return "Crop"; }
   virtual inline int ExactNumBottomBlobs() const { return 2; }
   virtual inline int ExactNumTopBlobs() const { return 1; }
@@ -551,13 +551,20 @@ class CropLayer : public Layer<Dtype> {
     coefs.push_back(make_pair(1, - crop_h_));
     coefs.push_back(make_pair(1, - crop_w_));
     return DiagonalAffineMap<Dtype>(coefs);
+  }
+
+ protected:
+  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
+  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
   int crop_h_, crop_w_;
-}
+};
 
 }  // namespace caffe
 
