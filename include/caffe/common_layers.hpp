@@ -45,7 +45,7 @@ class ArgMaxLayer : public Layer<Dtype> {
 
   virtual inline const char* type() const { return "ArgMax"; }
   virtual inline int ExactNumBottomBlobs() const { return 1; }
-  virtual inline int ExactNumTopBlobs() const { return 1; }
+  virtual inline int MinNumTopBlobs() const { return 1; }
 
  protected:
   /**
@@ -66,6 +66,8 @@ class ArgMaxLayer : public Layer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
     NOT_IMPLEMENTED;
   }
+  int label_axis_, outer_num_, inner_num_;
+
   bool out_max_val_;
   size_t top_k_;
 };
